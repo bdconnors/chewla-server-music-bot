@@ -1,0 +1,45 @@
+{
+  "name": "chewla-server-music-bot",
+  "version": "1.0.0",
+  "description": "music bot for friends discord server",
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    ".env"
+  ],
+  "scripts": {
+    "build": "tsup src --dts",
+    "typecheck": "tsc --noEmit",
+    "build:fast": "tsup src"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bdconnors/chewla-server-music-bot.git"
+  },
+  "author": "Brandon Connors <bdc5435@rit.edu>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bdconnors/chewla-server-music-bot/issues"
+  },
+  "homepage": "https://github.com/bdconnors/chewla-server-music-bot#readme",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "dependencies": {
+    "@discordjs/opus": "^0.9.0",
+    "@discordjs/voice": "^0.14.0",
+    "discord.js": "^14.7.1",
+    "dotenv": "^16.0.3",
+    "ffmpeg": "^0.0.4",
+    "fluent-ffmpeg": "^2.1.2",
+    "libsodium-wrappers": "^0.7.10",
+    "play-dl": "^1.9.6",
+    "yt-search": "^2.10.4",
+    "ytdl-core": "^4.11.2"
+  },
+  "devDependencies": {
+    "@types/yt-search": "^2.3.2",
+    "tsc": "^2.0.4",
+    "tsup": "^6.5.0",
+    "typescript": "^4.9.5"
+  }
+}
