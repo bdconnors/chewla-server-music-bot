@@ -2,16 +2,10 @@
   "name": "chewla-server-music-bot",
   "version": "1.0.0",
   "description": "music bot for friends discord server",
-  "main": "dist/index.js",
+  "main": "build/index.js",
   "files": [
-    "dist",
-    ".env"
+    "build"
   ],
-  "scripts": {
-    "build": "tsup src --dts",
-    "typecheck": "tsc --noEmit",
-    "build:fast": "tsup src"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bdconnors/chewla-server-music-bot.git"
@@ -22,11 +16,12 @@
     "url": "https://github.com/bdconnors/chewla-server-music-bot/issues"
   },
   "homepage": "https://github.com/bdconnors/chewla-server-music-bot#readme",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
+  "module": "build/index.mjs",
+  "types": "build/index.d.ts",
   "dependencies": {
     "@discordjs/opus": "^0.9.0",
     "@discordjs/voice": "^0.14.0",
+    "concurrently": "^7.6.0",
     "discord.js": "^14.7.1",
     "dotenv": "^16.0.3",
     "ffmpeg": "^0.0.4",
@@ -38,8 +33,13 @@
   },
   "devDependencies": {
     "@types/yt-search": "^2.3.2",
-    "tsc": "^2.0.4",
+    "nodemon": "^2.0.20",
     "tsup": "^6.5.0",
     "typescript": "^4.9.5"
+  },
+  "scripts": {
+    "start:build": "tsc -w",
+    "start:run": "nodemon build/index.js",
+    "start": "concurrently npm:start:*"
   }
 }

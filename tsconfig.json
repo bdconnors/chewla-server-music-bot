@@ -1,13 +1,12 @@
 {
   "compilerOptions": {
-    "target": "es2015",
+    "target": "es2016",
     "module": "commonjs",
     "strict": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "outDir": "dist",
-    "lib": ["dom", "esnext"],
-    "declarationDir": "dist",
+    "outDir": "build",
+    "declarationDir": "build",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
