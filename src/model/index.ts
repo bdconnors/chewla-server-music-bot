@@ -1,3 +1,3 @@
 export * from './ChannelConnection';
-export * from './ServerQueue';
+export * from './YoutubePlayer';
 export * from './SongRequest';

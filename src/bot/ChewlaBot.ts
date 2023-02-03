@@ -1,134 +1,61 @@
 import { Client, Message, TextChannel } from 'discord.js';
-import { IChewlaBot } from '../interface/IChewlaBot';
-import { IChewlaBotOptions } from '../interface/IChewlaBotOptions';
-import { ServerQueue } from '../model/ServerQueue';
-import { ServerQueueFactory, SongRequestFactory, ChannelConnectionFactory } from '../factory';
-import playdl from 'play-dl';
+import { IChewlaBot } from './IChewlaBot';
+import { ChewlaBotOptions } from './ChewlaBotOptions';
+import { YoutubePlayer } from '../model/YoutubePlayer';
+import { YoutubePlayerFactory, ChannelConnectionFactory } from '../factory';
 
 export class ChewlaBot implements IChewlaBot {
+
   prefix: string;
   token: string;
   permissions: number;
   discord: Client;
-  servers: Map<any, ServerQueue>;
+  servers: Map<any, YoutubePlayer>;
 
-  public constructor(options: IChewlaBotOptions) {
+  public constructor(options: ChewlaBotOptions) {
     this.prefix = options.prefix;
     this.token = options.token;
     this.permissions = options.permissions;
   }
 
-  onReady = () => {
-    console.log('Connected!')
-  }
-  onReconnecting = () => {
-    console.log('Reconnecting...')
-  }
-  onDisconnected = () => {
-    console.log('Disconnected!')
-  }
+  onReady = () => console.log('Connected!');
+
+  onReconnecting = () => console.log('Reconnecting...');
+
+  onDisconnected = () => console.log('Disconnected!');
+
   onMessage = async (message: Message) => {
     console.log(message);
     const isBotCommand = !message.author.bot && message.content.startsWith(this.prefix);
     if(isBotCommand) { 
-     await this.handleCommand(message);
+     const player = await this.connect(message);
+     const command = await player.getCommand(message);
+     await command(message);
     }
   }
-  handleCommand = async (message: Message) => {
-    const args = message.content.split(" ");
-    const command: string = args[0];
-    switch(command) {
-      case '~play':
-        return await this.handlePlay(message);
-      case '~pause':
-        return await this.handlePause(message);
-      case '~resume':
-        return await this.handleResume(message);
-      case '~stop':
-        return await this.handleStop(message);
-      case '~skip':
-        return await this.handleSkip(message);
-      case '~clear':
-        return await this.handleClear(message);
-      case '~select':
-        return await this.handleSelect(message);
-      default: 
-      return message.channel.send(`Unknown command: **${ command }**`);
 
+  connect = async (message: Message):Promise<YoutubePlayer> => {
+    const serverID = message.guild.id;
+    let player: YoutubePlayer | undefined = await this.getPlayer(serverID);
+    if(!player) {
+      player = this.createPlayer(message)
     }
+    return player;
   }
-  handlePlay = async(message: Message) => {
-    const args = message.content.split(' ');
-    args.shift();
-    const songName = args.join(' ');
-    const serverID =  message.guildId;
-    let serverQueue : ServerQueue = await this.getQueue(serverID);
-    if(!serverQueue) { serverQueue = this.createServerQueue(message); }
-    const searched = await playdl.search(songName, { source : { youtube : "video" } });
-    serverQueue.display(searched);
-  }
-  handlePause = async (message: Message) => {
-    const serverID =  message.guildId;
-    let serverQueue : ServerQueue = await this.getQueue(serverID);
-    if(!serverQueue) {
-      serverQueue = this.createServerQueue(message);
-    }
-    return await serverQueue.pause();
-  }
-  handleResume = async(message: Message) => {
-    const serverID =  message.guildId;
-    let serverQueue : ServerQueue = await this.getQueue(serverID);
-    if(!serverQueue) {
-      serverQueue = this.createServerQueue(message);
-    }
-    return await serverQueue.resume();
-  }
-  handleStop = async(message: Message) => {
-    const serverID =  message.guildId;
-    let serverQueue : ServerQueue = await this.getQueue(serverID);
-    if(!serverQueue) {
-      serverQueue = this.createServerQueue(message);
-    }
-    return await serverQueue.stop();
-  }
-  handleSkip = async(message: Message) => {
-    const serverID =  message.guildId;
-    let serverQueue : ServerQueue = await this.getQueue(serverID);
-    if(!serverQueue) {
-      serverQueue = this.createServerQueue(message);
-    }
-    return await serverQueue.next();
-  }
-  handleClear = async(message: Message) => {
-    const serverID = message.guildId;
-    let serverQueue: ServerQueue = await this.getQueue(serverID);
-    if(!serverQueue) {
-      serverQueue = this.createServerQueue(message);
-    }
-    return await serverQueue.clear();
-  }
-  handleSelect = async(message: Message) => {
-    const selection: number = parseInt(message.content.split(" ")[1]);
-    const serverID = message.guildId;
-    const serverQueue: ServerQueue = await this.getQueue(serverID);
-    serverQueue.init();
-    await serverQueue.select(selection);
-  }
-  createServerQueue = (message: Message):ServerQueue => {
+
+  createPlayer = (message: Message):YoutubePlayer => {
     const server = message.guild;
     const text = message.channel as TextChannel;
     const voice = message.member.voice.channel;
     
     const channelInfo = ChannelConnectionFactory.make(server, text, voice);
-    const serverQueue = ServerQueueFactory.make(channelInfo)
+    const serverQueue = YoutubePlayerFactory.make(channelInfo)
     this.servers.set(server.id, serverQueue);
     return serverQueue;
   }
-  search = async(title:string) => {
-    const searched = await playdl.search(title, { source : { youtube : "video" } });
-    const request = SongRequestFactory.make(searched[0].title, searched[0].url);
-  }
-  getQueue = async (serverID): Promise<ServerQueue | undefined> => await this.servers.get(serverID); 
+
+  getPlayer = async (serverID): Promise<YoutubePlayer | undefined> => await this.servers.get(serverID); 
+
   init = () => {
     if(!this.discord) {
       this.servers = new Map();

@@ -1,5 +1,17 @@
-import { AudioPlayer, AudioResource, createAudioPlayer, CreateVoiceConnectionOptions, joinVoiceChannel, JoinVoiceChannelOptions, VoiceConnection } from "@discordjs/voice";
+import { 
+  AudioPlayer, 
+  AudioPlayerStatus, 
+  AudioResource, 
+  createAudioPlayer, 
+  CreateVoiceConnectionOptions, 
+  joinVoiceChannel, 
+  JoinVoiceChannelOptions, 
+  VoiceConnection 
+} from "@discordjs/voice";
 import { Guild, TextChannel, VoiceBasedChannel } from "discord.js";
+import { ChannelConnectionFactory } from "../factory";
+
+export type ChannelConnectionOptions = CreateVoiceConnectionOptions & JoinVoiceChannelOptions;
 
 export class ChannelConnection {
   
@@ -13,7 +25,7 @@ export class ChannelConnection {
     this.server = server;
     this.textChannel = text;
     this.voiceChannel = voice;
-    this.player = player;
+    this.player = player ? player : createAudioPlayer();
     this.conn = conn;
   }
 
@@ -26,10 +38,11 @@ export class ChannelConnection {
 
   join = () => {
     if(!this.conn) {
-      const options = this.getConnectionOptions();
+      const channelId = this.voiceChannel.id;
+      const serverId = this.server.id;
+      const adapter = this.server.voiceAdapterCreator;
+      const options = ChannelConnectionFactory.makeOptions(channelId, serverId, adapter);
       this.conn = joinVoiceChannel(options);
-      this.player = createAudioPlayer();   
-      this.player.on('error',(e)=>console.log(e));
       this.conn.subscribe(this.player);
     }else {
       console.log('channel already joined');
@@ -39,17 +52,6 @@ export class ChannelConnection {
   sendAudio = (audio:AudioResource<null>) => this.player.play(audio);
 
   sendMessage = (content:string) => this.textChannel.send(content);
-
-  getConnectionOptions = (): CreateVoiceConnectionOptions & JoinVoiceChannelOptions => {
-    const channelID = this.voiceChannel.id;
-    const serverID = this.server.id;
-    const voiceAdapter = this.server.voiceAdapterCreator;
-    return { 
-      channelId: channelID, 
-      guildId: serverID, 
-      adapterCreator: voiceAdapter 
-    } as CreateVoiceConnectionOptions & JoinVoiceChannelOptions;
-  }
 
   isActive =  () => this.conn !== undefined;
 }
