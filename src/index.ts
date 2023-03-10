@@ -1,11 +1,12 @@
 import { IntentsBitField } from 'discord.js';
 import { ChewlaBot } from './bot';
-import { config } from './config';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 try {
   const bot:ChewlaBot = new ChewlaBot({
-    prefix: config.COMMAND_PREFIX,
-    token: config.BOT_TOKEN,
+    prefix: process.env.COMMAND_PREFIX,
+    token: process.env.BOT_TOKEN,
     permissions: [
       IntentsBitField.Flags.MessageContent,
       IntentsBitField.Flags.Guilds,
